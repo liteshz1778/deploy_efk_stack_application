@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: elastic-stack
+  labels:
+    app: elasticsearch
+spec:
+  serviceName: elasticsearch
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      name: elasticsearch-pod
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+        - name: elasticsearch-container
+          image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+          env:
+            - name: discovery.type
+              value: single-node
+          ports:
+            - name: port1
+              containerPort: 9200
+            - name: port2
+              containerPort: 9300
+          volumeMounts:
+            - name: es-data
+              mountPath: /usr/share/elasticsearch/data
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+          securityContext:
+              privileged: true
+          volumeMounts:
+          - name: es-data
+            mountPath: /usr/share/elasticsearch/data
+  volumeClaimTemplates:
+    - metadata:
+        name: es-data
+      spec:
+        storageClassName: manual
+        resources:
+          requests:
+            storage: 5Gi
+        accessModes: 
+          - ReadWriteOnce

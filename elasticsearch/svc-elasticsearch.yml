@@ -10,7 +10,9 @@ spec:
   ports:
     - name: port1 
       port: 9200
+      targetPort: 9200
       nodePort: 30200 
     - name: port2
       port: 9300
+      targetPort: 9300
       nodePort: 30300

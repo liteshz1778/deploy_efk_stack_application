@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  labels:
+    app: kibana
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      name: kibana-pod
+      labels:
+        app: kibana
+        version: v3
+    spec:
+      containers:
+        - name: kibana-container
+          image: docker.elastic.co/kibana/kibana:7.1.0
+          ports:
+            - containerPort: 5601

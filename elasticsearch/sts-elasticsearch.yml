@@ -22,12 +22,6 @@ spec:
           env:
             - name: discovery.type
               value: single-node
-            - name: ES_JAVA_OPTS
-              value: "-Xms1g -Xmx1g"
-            - name: xpack.security.enabled
-              value: "true"
-            - name: xpack.security.transport.ssl.enabled
-              value: "true"
           ports:
             - name: port1
               containerPort: 9200

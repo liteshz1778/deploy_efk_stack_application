@@ -1,0 +1,46 @@
+Question: Create HPA for ElasticSearch StatefulSet 
+
+Since our metrics server is up and running now, create and apply a Horizontal Pod Autoscaler (HPA) for the Elasticsearch statefulset to automatically scale between 1 and 3 replicas based on a target CPU utilization of 80%.
+
+The HPA should be named elasticsearch-autoscaler and should be applied in the elastic-stack namespace. Place the HPA yaml in the /root/elastic-search folder.
+
+Verify the HPA configuration for Elasticsearch by deleting the existing elasticsearch-0 pod and letting a new one to spin up.
+
+
+Refer to the Autoscaling Elasticsearch section in the Description page to view a sample HPA configuration.
+
+Answer:
+
+1. Create es-hpa.yaml object config file & apply it
+
+controlplane ~/elastic-search ➜  cat es-hpa.yaml 
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: elasticsearch-autoscaler
+  namespace: elastic-stack
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: elasticsearch
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+		
+2. k apply -f es-hpa.yaml
+
+3. kubectl get pods -n elastic-stack
+
+4. kubectl delete pod elasticsearch-0
+	Delete es-pod so at start it will consume more cpu 
+
+5. k get hpa -w 
+	Validate the HPA is working correctly or not.
+

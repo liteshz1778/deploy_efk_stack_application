@@ -1,0 +1,26 @@
+Question:
+
+1. Configure Metrics Server & to fetch cpu & memory usage 
+2. Based this metrics StatefulSet of Elastic Search will horizontally scale the pods.
+
+Answer:
+
+1. Download the components.yaml file from the provided URL:
+		wget https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.5.0/components.yaml
+
+2. Edit the components.yaml file to include the argument - --kubelet-insecure-tls in the args of the Deployment section:
+	spec:
+		containers:
+		- args:
+			- --cert-dir=/tmp
+			- --secure-port=443
+			- --kubelet-insecure-tls
+			- --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+			- --kubelet-use-node-status-port
+			- --metric-resolution=15s
+			
+3. Apply this file now:
+	kubectl apply -f components.yaml
+
+4. List the pods in the kube-system namespace to verify if the metrics-server is running:
+	kubectl get pods -n kube-system

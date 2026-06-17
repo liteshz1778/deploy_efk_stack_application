@@ -1,0 +1,23 @@
+Question:
+
+Migrate our data from the old index to this new index.
+
+Reindex data from the old index of the form fluentd-* to the newly created myindex.
+
+Answer:
+
+1. Run the following command to reindex the data:
+curl -X POST "http://localhost:30200/_reindex" -H 'Content-Type: application/json' -d'
+{
+  "source": {
+    "index": "fluentd-<date>"
+  },
+  "dest": {
+    "index": "myindex"
+  }
+}'
+
+Note: Replace the <date> placeholder with the real date fragment in your old index name.
+
+2. Now, go to Management -> Index Management in the Kibana UI.
+	Click on the Reload indices button on the right and you should see the newly created index with 5 as the value of Primaries.

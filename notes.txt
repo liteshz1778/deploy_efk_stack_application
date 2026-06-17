@@ -1,0 +1,9 @@
+Validate connection between Elastic Search & fluentd:
+https://<node-ip>:30200/_cat/indices?v
+
+
+Experiment with the query syntax further. Use the following documentation for the same:
+https://www.elastic.co/guide/en/kibana/current/kuery-query.html
+
+To create visualizations and dashboards, refer to the following documentation:
+https://www.elastic.co/guide/en/kibana/current/dashboard.html

@@ -1,0 +1,23 @@
+Question:
+
+To improve the performance of our Elasticsearch deployment, let's use the concept of sharding.
+
+Head over to the Kibana UI and inspect the index created by navigating to Management -> Index Management. This index has only 1 shard, mentioned as Primaries. We will increase this number.
+
+However, directly updating this index can be fatal for our data.
+
+Create a new index called myindex with number of shards as 5.
+
+
+Note: Elasticsearch is accessible at port 30200.
+
+Awnser:
+
+Run the following command in the terminal to create the required index:
+
+curl -X PUT "http://localhost:30200/myindex" -H 'Content-Type: application/json' -d'
+{
+  "settings": {
+    "number_of_shards": 5
+  }
+}'

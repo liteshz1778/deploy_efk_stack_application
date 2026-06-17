@@ -1,0 +1,94 @@
+Question:
+
+We already have a fluentd pod running as part of a daemonset. A daemonset ensures that a single instance of a pod is running on each node in a cluster. With the increase in number of nodes, one fluentd pod per node will be automatically rolled out.
+
+However, sometimes a particular node may generate excessive amounts of logs and we would need more than one fluentd pod to ship logs.
+
+Utilize replicaset to increase the number of Fluentd pods in the controlplane node by 2 to handle higher log volumes.
+
+The final number of fluentd pods (daemonset and replicaset combined) should be 3.
+
+You can reuse the daemonset configuration for this.
+
+
+Verify the pod count after the update.
+
+Answer:
+
+1. Create RepliaSet Yaml Manifest file & apply those changes
+
+controlplane ~/fluentd ➜  cat fluentd-rs.yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: fluentd
+  namespace: elastic-stack
+  labels:
+    app: fluentd
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fluentd
+  template:
+    metadata:
+      labels:
+        app: fluentd
+    spec:
+      serviceAccount: fluentd
+      serviceAccountName: fluentd
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      containers:
+      - name: fluentd
+        image: fluent/fluentd-kubernetes-daemonset:v1.14.1-debian-elasticsearch7-1.0
+        env:
+          - name:  FLUENT_ELASTICSEARCH_HOST
+            value: "elasticsearch.elastic-stack.svc.cluster.local"
+          - name:  FLUENT_ELASTICSEARCH_PORT
+            value: "9200"
+          - name: FLUENT_ELASTICSEARCH_SCHEME
+            value: "http"
+          - name: FLUENTD_SYSTEMD_CONF
+            value: disable
+          - name: FLUENT_CONTAINER_TAIL_EXCLUDE_PATH
+            value: /var/log/containers/fluent*
+          - name: FLUENT_ELASTICSEARCH_SSL_VERIFY
+            value: "false"
+          - name: FLUENT_CONTAINER_TAIL_PARSER_TYPE
+            value: /^(?<time>.+) (?<stream>stdout|stderr)( (?<logtag>.))? (?<log>.*)$/ 
+          - name:  FLUENT_ELASTICSEARCH_LOGSTASH_PREFIX
+            value: "fluentd"
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - name: varlog
+          mountPath: /var/log
+        - name: varlibdockercontainers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        - name: configpath
+          mountPath: /fluentd/etc
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: varlibdockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
+      - name: configpath
+        hostPath:
+          path: /root/fluentd/etc
+
+2. k apply -f fluentd-rs.yaml
+
+3. Validate whether pod replicas count is 3 or not.
+		k get po -l app=fluentd
+		
+

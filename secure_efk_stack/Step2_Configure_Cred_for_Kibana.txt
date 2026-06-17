@@ -1,0 +1,24 @@
+Question: 
+
+Configure ENV ie. USername & Passwd for Kibana which we configured earlier for Elastic Search
+
+Answer:
+
+1. Navigate to the /kibana directory.
+
+2. Edit the kibana-deployment.yaml file and append an env section with the following variables:
+
+env:
+- name: ELASTICSEARCH_USERNAME
+  value: "elastic_user"
+- name: ELASTICSEARCH_PASSWORD
+  value: "elasticPass123"
+
+3. Apply this configuration:
+	kubectl apply -f kibana-deployment.yaml
+
+4. Refresh the Kibana UI. The changes may take some time to load.
+	You will then be presented with a prompt requiring you to enter a username and password.
+	Enter username as elastic_user and password as elasticPass123.
+
+You can now access the Kibana UI and see your profile as elastic-user. 

@@ -1,0 +1,45 @@
+Question: 
+Configure NetworkPolicy efk-stack-policy in the elastic-stack namespace to allow traffic exclusively from the elastic-stack namespace and block traffic from all other namespaces. 
+
+
+Note: Use below command to check  wtether we are able to access the elastic search svc or not.
+		Before & after implemneting Network Policy.
+
+kubectl exec -it web-server-bf5bd9d79-blrjn -n default -- \
+curl -s -u elastic_user:elasticPass123 \
+http://elasticsearch.elastic-stack.svc.cluster.local:9200
+
+Answer:
+
+1. Configured network policy for namespace "elastic-stack" itself.
+
+controlplane ~ ➜  cat efk-stack-policy.yml 
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: efk-stack-policy
+  namespace: elastic-stack
+spec:
+  podSelector: 
+    matchLabels: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector: 
+            matchLabels: {}
+          namespaceSelector:
+            matchLabels:
+              name: elastic-stack
+  egress:
+    - to:
+        - podSelector: 
+            matchLabels: {}
+          namespaceSelector:
+            matchLabels:
+              name: elastic-stack
+			  
+2. k get netpol
+
+3. k describe netpol efk-stack-policy

@@ -1,0 +1,28 @@
+Question:
+
+Configure TLS/SSL for encrypted communications between Fluentd and Elasticsearch within the elastic-stack namespace.
+
+Modify the Fluentd configuration at /root/fluentd/etc to reference the Elasticsearch credentials:
+Username: elastic_user
+Password: elasticPass123
+
+Answer:
+
+1. Inspect the logs of the fluentd pod:
+		kubectl logs <fluentd-pod-name>
+	You can see a message stating that fluentd is unable to connect to elasticsearch due to authorization error as a result of implementation of a new security policy.
+	Also, in the Kibana UI, you can see no elasticsearch data shipped.
+
+2. Now, navigate to the /root/fluentd/etc folder. Scroll down to the <match **> section at the end of this configuration. This part pertains to the recipient elasticsearch.
+
+3. Modify the value of ssl_verify parameter to true from false:
+		ssl_verify true
+	Add the elasticsearch username and password for the user and password parameters:
+		user elastic_user
+		password elasticPass123
+
+4. Save this configuration and delete the existing fluentd pod:
+	kubectl delete pod <fluentd-pod-name>
+
+6. A new fluentd pod will be spawned immediately with our new config settings.
+	The logs now show data chunks being pushed, and querying for elasticsearch data on Kibana UI will result in success.

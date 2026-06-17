@@ -1,0 +1,27 @@
+Question: Secure Elastic Search UI
+
+Answer:
+
+1. Navigate to the /root/elastic-search directory.
+2. Edit the es-statefulset.yaml file and add the following variables under the env section:
+	env:
+		- name: discovery.type
+		  value: single-node
+		- name: ES_JAVA_OPTS
+		  value: "-Xms1g -Xmx1g"
+		- name: xpack.security.enabled
+		  value: "true"
+		- name: xpack.security.transport.ssl.enabled
+		  value: "true"
+
+3. Apply this new statefulset:
+	kubectl apply -f es-statefulset.yaml
+
+4. Refresh the Elasticsearch UI. It may take some time for it to restart.
+	As soon as the UI loads, you will be prompted for a username and password. However, we first need to configure this to login.
+
+5. In your terminal, exec into the elasticsearch-0 container and use the elasticsearch-users utility under bin folder to add a new user:
+		kubectl exec -it elasticsearch-0 -- bin/elasticsearch-users useradd elastic_user -r superuser -p elasticPass123
+	Here, we are creating a user with username elastic_user and password elasticPass123. The role granted to this user is superuser.
+
+6. In the Elasticsearch UI, enter the same username and password and you should see the deployment details now.

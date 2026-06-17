@@ -5,7 +5,10 @@ Configure NetworkPolicy efk-stack-policy in the elastic-stack namespace to allow
 Note: Use below command to check  wtether we are able to access the elastic search svc or not.
 		Before & after implemneting Network Policy.
 
-kubectl exec -it web-server-bf5bd9d79-blrjn -n default -- \
+kubectl run -it web-server01 \
+--image=curlimages/curl \
+-n default \
+-- \
 curl -s -u elastic_user:elasticPass123 \
 http://elasticsearch.elastic-stack.svc.cluster.local:9200
 

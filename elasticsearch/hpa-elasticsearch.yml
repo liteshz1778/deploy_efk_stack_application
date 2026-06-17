@@ -1,7 +1,7 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: hp-elasticsearch
+  name: hpa-elasticsearch
   namespace: elastic-stack
 spec:
   scaleTargetRef:

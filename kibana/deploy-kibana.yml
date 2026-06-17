@@ -21,3 +21,6 @@ spec:
           image: docker.elastic.co/kibana/kibana:7.1.0
           ports:
             - containerPort: 5601
+          envFrom:
+            - secretRef:
+                name: elasticsearch-secret

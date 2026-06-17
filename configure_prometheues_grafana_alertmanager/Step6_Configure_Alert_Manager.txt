@@ -1,0 +1,82 @@
+Question: Configure Alert Manager on port 9093
+
+After the alerts are visible on alertmanager, to demonstrate how these alerts can be redirected using alertmanager, run the python script present in the /root/scripts path in a new terminal. You must see all the alerts received so far.
+
+Default port for Alertmanager is 9093.
+
+Here we have redirected the alerts to a local HTTP server. Refer to this document to learn how to redirect to other receiver targets:
+https://prometheus.io/docs/alerting/latest/configuration/#receiver-integration-settings
+
+Awswer:
+
+1. Download alertmanager using the wget command:
+		wget https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz
+2. Then extract the newly downloaded .tar.gz extension file:
+		tar xzf alertmanager-0.27.0.linux-amd64.tar.gz -C ./
+
+3. A folder titled alertmanager-0.27.0.linux-amd64 will be visible under the root directory. Navigate within this folder and you will see few binaries and an alertmanager.yml file.
+	Inspect this file but do not make any changes to it. You can see that the receiver is mentioned as the port 5001 of our machine. Run the following command to start alertmanager at the default port 9093:
+		nohup ./alertmanager --config.file=alertmanager.yml &
+
+4. Identify the PID of the prometheus process:
+		ps aux | grep prometheus
+	and kill the process:
+		kill -9 <pid>
+
+5. Navigate to the prometheus-2.51.1.linux-amd64 folder and edit the prometheus.yml file to include alertmanager under the alerting section:
+	alerting:
+		alertmanagers:
+			- static_configs:
+				- targets: ["localhost:9093"]
+
+6. Re-start the process in the background so that it picks the updated configuration:
+		nohup ./prometheus --config.file=prometheus.yml &
+
+7. Using the View Ports utility, access port number 9093. You can see your HighElasticsearchHeapUsage alert on the Alerts page.
+
+
+8. Open a new terminal, navigate to /root/scripts and run the python script:
+		python3 alert_receiver.py
+	You can see all the alerts on your terminal now.
+
+
+Access: Alert Manager page: http://<node-ip>:9093
+
+or http://<node-ip>:9090/alerts
+
+----------------------------
+
+controlplane ~/scripts via 🐍 v3.10.12 ✦3 ➜  cat alert_receiver.py 
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import json
+import subprocess
+
+class RequestHandler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        alert = json.loads(post_data.decode('utf-8'))
+        print("Received alert:")
+        print(json.dumps(alert, indent=2))
+
+def kill_process_on_port(port):
+    # Find process ID (PID) using netstat
+    netstat_output = subprocess.check_output(['netstat', '-tuln'])
+    for line in netstat_output.splitlines():
+        parts = line.split()
+        if len(parts) >= 4 and parts[3] == f'127.0.0.1:{port}':
+            pid = parts[6].decode('utf-8').split('/')[0]
+            # Kill the process
+            subprocess.call(['kill', pid])
+            print(f"Killed process with PID {pid}")
+            return
+
+def run(server_class=HTTPServer, handler_class=RequestHandler, port=5001):
+    kill_process_on_port(port)
+    server_address = ('', port)
+    httpd = server_class(server_address, handler_class)
+    print(f"Starting HTTP server on port {port}")
+    httpd.serve_forever()
+
+if __name__ == '__main__':
+    run()
